@@ -11,6 +11,7 @@ namespace AiMiniGames.Match3
         [SerializeField] private int tileTypeCount = 6;
         [SerializeField] private bool autoStartOnPlay = true;
         [SerializeField] private bool logBoardChanges = true;
+        [SerializeField] private bool autoShuffleWhenNoMoves = true;
 
         [Header("Debug Swap")]
         [SerializeField] private Vector2Int debugSwapA = new(0, 0);
@@ -20,6 +21,8 @@ namespace AiMiniGames.Match3
         private System.Random random;
 
         public Match3BoardState Board => boardState;
+
+        public string LastStatusMessage { get; private set; } = "等待开始";
 
         public event Action BoardChanged;
 
@@ -67,6 +70,7 @@ namespace AiMiniGames.Match3
             EnsureRuntimeState();
             boardState = new Match3BoardState(boardWidth, boardHeight, tileTypeCount);
             boardState.Reset(random);
+            LastStatusMessage = "新的一局已开始";
 
             LogBoard("Match-3 new game created.");
             BoardChanged?.Invoke();
@@ -92,12 +96,23 @@ namespace AiMiniGames.Match3
 
             if (!swapped)
             {
+                LastStatusMessage = "交换失败：需要相邻且能形成消除";
+
                 if (logBoardChanges)
                 {
                     Debug.Log($"Swap failed: {first} <-> {second}", this);
                 }
 
+                BoardChanged?.Invoke();
                 return false;
+            }
+
+            LastStatusMessage = $"交换成功，消除了 {result.ClearedTileCount} 个方块";
+
+            if (autoShuffleWhenNoMoves && !boardState.HasAnyValidMove())
+            {
+                ShuffleBoardUntilPlayable();
+                LastStatusMessage = "当前无合法交换，已自动洗牌";
             }
 
             if (logBoardChanges)
@@ -142,6 +157,17 @@ namespace AiMiniGames.Match3
             }
 
             Debug.Log($"{prefix}\n{boardState.ToDebugString()}", this);
+        }
+
+        // 当棋盘进入死局时，重新随机生成一盘“无初始消除且至少有一步可走”的布局。
+        private void ShuffleBoardUntilPlayable()
+        {
+            boardState.Reset(random);
+
+            if (logBoardChanges)
+            {
+                Debug.Log($"Board shuffled because there were no valid moves.\n{boardState.ToDebugString()}", this);
+            }
         }
     }
 }

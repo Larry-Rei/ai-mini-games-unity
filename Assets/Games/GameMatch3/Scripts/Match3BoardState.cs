@@ -58,6 +58,30 @@ namespace AiMiniGames.Match3
 
         public int SuccessfulMoves { get; private set; }
 
+        // 检查当前棋盘上是否还存在至少一步合法交换。
+        public bool HasAnyValidMove()
+        {
+            for (var y = 0; y < Height; y++)
+            {
+                for (var x = 0; x < Width; x++)
+                {
+                    var current = new GridPosition(x, y);
+
+                    if (x + 1 < Width && WouldCreateMatchAfterSwap(current, new GridPosition(x + 1, y)))
+                    {
+                        return true;
+                    }
+
+                    if (y + 1 < Height && WouldCreateMatchAfterSwap(current, new GridPosition(x, y + 1)))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         // 重置棋盘，并生成一个开局时没有三连的初始布局。
         public void Reset(Random random)
         {
@@ -157,6 +181,25 @@ namespace AiMiniGames.Match3
         // 生成开局棋盘时，主动避开横向或纵向的初始三连。
         private void FillInitialBoard(Random random)
         {
+            for (var y = 0; y < Height; y++)
+            {
+                for (var x = 0; x < Width; x++)
+                {
+                    cells[x, y] = GetRandomTileForInitialFill(x, y, random);
+                }
+            }
+
+            // 标准三消开局应保证“无初始三连”且“至少有一步可走”。
+            while (!HasAnyValidMove())
+            {
+                RebuildBoardWithoutStartingMatches(random);
+            }
+        }
+
+        private void RebuildBoardWithoutStartingMatches(Random random)
+        {
+            Array.Clear(cells, 0, cells.Length);
+
             for (var y = 0; y < Height; y++)
             {
                 for (var x = 0; x < Width; x++)
@@ -323,6 +366,15 @@ namespace AiMiniGames.Match3
             var temp = cells[first.X, first.Y];
             cells[first.X, first.Y] = cells[second.X, second.Y];
             cells[second.X, second.Y] = temp;
+        }
+
+        // 用“临时交换 -> 检查是否产生匹配 -> 换回去”的方式判断这一步是否合法。
+        private bool WouldCreateMatchAfterSwap(GridPosition first, GridPosition second)
+        {
+            SwapTiles(first, second);
+            var wouldMatch = FindAllMatches().Count > 0;
+            SwapTiles(first, second);
+            return wouldMatch;
         }
 
         private void ValidatePosition(GridPosition position)

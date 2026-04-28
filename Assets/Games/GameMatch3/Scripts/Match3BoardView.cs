@@ -132,11 +132,9 @@ namespace AiMiniGames.Match3
 
             UpdateScoreText(controller.Board.Score);
             RefreshSelection();
-
-            if (selectedPosition == null && stateText != null && string.IsNullOrWhiteSpace(stateText.text))
-            {
-                UpdateStateText("请选择两个相邻方块进行交换");
-            }
+            UpdateStateText(selectedPosition == null
+                ? controller.LastStatusMessage
+                : $"已选中 {selectedPosition.Value}");
         }
 
         private void EnsureGridLayout(int width, int height)
@@ -228,8 +226,6 @@ namespace AiMiniGames.Match3
             {
                 controller.NewGame();
             }
-
-            UpdateStateText("新的一局已开始");
         }
     }
 }

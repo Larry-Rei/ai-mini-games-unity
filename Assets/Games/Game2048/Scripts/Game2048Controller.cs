@@ -13,8 +13,11 @@ namespace AiMiniGames.Game2048
         private BoardState boardState;
         private System.Random random;
         private bool hasLoggedWin;
+        private bool inputLocked;
 
         public BoardState Board => boardState;
+
+        public BoardMoveResult LastMoveResult { get; private set; }
 
         public event Action BoardChanged;
 
@@ -48,6 +51,11 @@ namespace AiMiniGames.Game2048
                 return;
             }
 
+            if (inputLocked)
+            {
+                return;
+            }
+
             if (TryGetMoveInput(out var direction))
             {
                 TryMove(direction);
@@ -67,6 +75,8 @@ namespace AiMiniGames.Game2048
             boardState = new BoardState(boardSize);
             boardState.Reset(random);
             hasLoggedWin = false;
+            inputLocked = false;
+            LastMoveResult = null;
 
             if (logBoardAfterMoves)
             {
@@ -81,10 +91,12 @@ namespace AiMiniGames.Game2048
         {
             EnsureRuntimeState();
 
-            if (!boardState.TryMove(direction, random))
+            if (!boardState.TryMove(direction, random, out var moveResult))
             {
                 return false;
             }
+
+            LastMoveResult = moveResult;
 
             if (logBoardAfterMoves)
             {
@@ -125,6 +137,12 @@ namespace AiMiniGames.Game2048
             {
                 boardState = new BoardState(boardSize);
             }
+        }
+
+        // 动画播放期间由显示层调用，防止玩家连续输入导致视图和数据不同步。
+        public void SetInputLocked(bool locked)
+        {
+            inputLocked = locked;
         }
 
         // 把键盘输入统一转换成移动方向。

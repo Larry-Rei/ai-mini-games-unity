@@ -211,8 +211,74 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1591928099
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1591928101}
+  - component: {fileID: 1591928100}
+  m_Layer: 0
+  m_Name: MainMenuController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1591928100
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1591928099}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 916e5e7f95b780e4a8fb5060e0b3f0d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  menuTitle: AI Mini Games
+  menuSubtitle: "\u4E09\u4E2A\u7ECF\u5178\u5C0F\u6E38\u620F\u539F\u578B\uFF0C\u5168\u90E8\u57FA\u4E8E
+    Unity \u642D\u5EFA\uFF0C\u5E76\u7531 AI \u534F\u52A9\u5B8C\u6210\u4EE3\u7801\u4E0E\u7F8E\u672F\u6D41\u7A0B\u3002"
+  footerText: "\u9009\u62E9\u4E00\u4E2A\u5C0F\u6E38\u620F\u5F00\u59CB\u4F53\u9A8C"
+  entries:
+  - title: 2048
+    description: "\u6ED1\u52A8\u6570\u5B57\u65B9\u5757\uFF0C\u5408\u5E76\u51FA\u66F4\u5927\u7684\u6570\u5B57\u3002"
+    sceneName: Game2048
+    accentColor: {r: 0.93, g: 0.57, b: 0.24, a: 1}
+  - title: Match 3
+    description: "\u4EA4\u6362\u76F8\u90BB\u65B9\u5757\uFF0C\u7EC4\u6210\u4E09\u8FDE\u5E76\u89E6\u53D1\u8FDE\u9501\u6D88\u9664\u3002"
+    sceneName: GameMatch3
+    accentColor: {r: 0.92, g: 0.35, b: 0.44, a: 1}
+  - title: "\u5408\u6210\u5927\u897F\u74DC"
+    description: "\u6295\u653E\u6C34\u679C\u5E76\u4E0D\u65AD\u5408\u6210\uFF0C\u6311\u6218\u66F4\u9AD8\u4F53\u79EF\u4E0E\u5206\u6570\u3002"
+    sceneName: GameWatermelon
+    accentColor: {r: 0.35, g: 0.66, b: 0.34, a: 1}
+  backgroundColor: {r: 0.95, g: 0.9, b: 0.84, a: 1}
+  panelColor: {r: 0.98, g: 0.96, b: 0.93, a: 0.94}
+  inkColor: {r: 0.18, g: 0.15, b: 0.13, a: 1}
+  softInkColor: {r: 0.35, g: 0.3, b: 0.27, a: 1}
+--- !u!4 &1591928101
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1591928099}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 935.0365, y: 602.5456, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 189756686}
+  - {fileID: 1591928101}

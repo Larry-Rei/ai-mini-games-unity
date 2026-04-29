@@ -19,10 +19,14 @@ namespace AiMiniGames.Match3
 
         private Match3BoardState boardState;
         private System.Random random;
+        private bool inputLocked;
+        private bool pendingShuffle;
 
         public Match3BoardState Board => boardState;
 
         public string LastStatusMessage { get; private set; } = "等待开始";
+
+        public Match3TurnResult LastTurnResult { get; private set; }
 
         public event Action BoardChanged;
 
@@ -70,6 +74,9 @@ namespace AiMiniGames.Match3
             EnsureRuntimeState();
             boardState = new Match3BoardState(boardWidth, boardHeight, tileTypeCount);
             boardState.Reset(random);
+            pendingShuffle = false;
+            inputLocked = false;
+            LastTurnResult = null;
             LastStatusMessage = "新的一局已开始";
 
             LogBoard("Match-3 new game created.");
@@ -87,6 +94,11 @@ namespace AiMiniGames.Match3
         public bool TrySwap(Vector2Int first, Vector2Int second)
         {
             EnsureRuntimeState();
+
+            if (inputLocked)
+            {
+                return false;
+            }
 
             var swapped = boardState.TrySwap(
                 new GridPosition(first.x, first.y),
@@ -107,12 +119,13 @@ namespace AiMiniGames.Match3
                 return false;
             }
 
+            LastTurnResult = result;
             LastStatusMessage = $"交换成功，消除了 {result.ClearedTileCount} 个方块";
 
             if (autoShuffleWhenNoMoves && !boardState.HasAnyValidMove())
             {
-                ShuffleBoardUntilPlayable();
-                LastStatusMessage = "当前无合法交换，已自动洗牌";
+                pendingShuffle = true;
+                LastStatusMessage = "当前无合法交换，动画后将自动洗牌";
             }
 
             if (logBoardChanges)
@@ -133,6 +146,34 @@ namespace AiMiniGames.Match3
         {
             EnsureRuntimeState();
             return boardState.GetTile(x, y);
+        }
+
+        // 给显示层判断这一回合动画播完后，是否还需要补一个自动洗牌。
+        public bool HasPendingShuffle()
+        {
+            return pendingShuffle;
+        }
+
+        // 由显示层在动画播放期间加锁，避免玩家连续点击导致界面和数据脱节。
+        public void SetInputLocked(bool locked)
+        {
+            inputLocked = locked;
+        }
+
+        // 一次交换的整套表现播放结束后，由显示层通知控制器继续处理尾部逻辑。
+        public void CompleteTurnPresentation()
+        {
+            LastTurnResult = null;
+
+            if (!pendingShuffle)
+            {
+                return;
+            }
+
+            pendingShuffle = false;
+            ShuffleBoardUntilPlayable();
+            LastStatusMessage = "当前无合法交换，已自动洗牌";
+            BoardChanged?.Invoke();
         }
 
         // 保证运行时依赖对象已经初始化完成。

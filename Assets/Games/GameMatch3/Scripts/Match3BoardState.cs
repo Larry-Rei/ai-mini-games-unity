@@ -121,6 +121,8 @@ namespace AiMiniGames.Match3
                 return false;
             }
 
+            var firstTileType = cells[first.X, first.Y];
+            var secondTileType = cells[second.X, second.Y];
             SwapTiles(first, second);
 
             var matches = FindAllMatches();
@@ -136,10 +138,13 @@ namespace AiMiniGames.Match3
             var totalCleared = 0;
             var cascadeCount = 0;
             var scoreGained = 0;
+            var cascadePhases = new List<Match3CascadePhase>();
 
             while (matches.Count > 0)
             {
                 cascadeCount++;
+                var boardBeforeClear = CreateSnapshot();
+                var clearedPositions = new List<GridPosition>(matches);
 
                 var clearedThisCascade = ClearMatches(matches);
                 totalCleared += clearedThisCascade;
@@ -148,14 +153,26 @@ namespace AiMiniGames.Match3
                 var cascadeScore = clearedThisCascade * 10 * cascadeCount;
                 scoreGained += cascadeScore;
 
-                CollapseColumns();
-                RefillBoard(random);
+                var tileMotions = CollapseColumns();
+                tileMotions.AddRange(RefillBoard(random));
+
+                var boardAfterCascade = CreateSnapshot();
+                cascadePhases.Add(new Match3CascadePhase(
+                    boardBeforeClear,
+                    boardAfterCascade,
+                    clearedPositions,
+                    tileMotions));
 
                 matches = FindAllMatches();
             }
 
             Score += scoreGained;
-            result = new Match3TurnResult(totalCleared, cascadeCount, scoreGained);
+            result = new Match3TurnResult(
+                totalCleared,
+                cascadeCount,
+                scoreGained,
+                new Match3SwapInfo(first, second, firstTileType, secondTileType),
+                cascadePhases);
             return true;
         }
 
@@ -321,8 +338,10 @@ namespace AiMiniGames.Match3
         }
 
         // 把每一列中还存在的方块向下压紧，模拟重力下落。
-        private void CollapseColumns()
+        private List<Match3TileMotion> CollapseColumns()
         {
+            var tileMotions = new List<Match3TileMotion>();
+
             for (var x = 0; x < Width; x++)
             {
                 var writeY = 0;
@@ -339,26 +358,46 @@ namespace AiMiniGames.Match3
                     {
                         cells[x, writeY] = tile;
                         cells[x, readY] = Match3TileType.None;
+                        tileMotions.Add(new Match3TileMotion(
+                            tile,
+                            new GridPosition(x, readY),
+                            new GridPosition(x, writeY),
+                            false));
                     }
 
                     writeY++;
                 }
             }
+
+            return tileMotions;
         }
 
         // 给顶部出现的空位补入新方块，可能由此触发新的连锁消除。
-        private void RefillBoard(Random random)
+        private List<Match3TileMotion> RefillBoard(Random random)
         {
+            var tileMotions = new List<Match3TileMotion>();
+
             for (var x = 0; x < Width; x++)
             {
+                var spawnIndex = 0;
+
                 for (var y = 0; y < Height; y++)
                 {
                     if (cells[x, y] == Match3TileType.None)
                     {
-                        cells[x, y] = playableTiles[random.Next(playableTiles.Length)];
+                        var tile = playableTiles[random.Next(playableTiles.Length)];
+                        cells[x, y] = tile;
+                        tileMotions.Add(new Match3TileMotion(
+                            tile,
+                            new GridPosition(x, Height + spawnIndex),
+                            new GridPosition(x, y),
+                            true));
+                        spawnIndex++;
                     }
                 }
             }
+
+            return tileMotions;
         }
 
         private void SwapTiles(GridPosition first, GridPosition second)
@@ -375,6 +414,11 @@ namespace AiMiniGames.Match3
             var wouldMatch = FindAllMatches().Count > 0;
             SwapTiles(first, second);
             return wouldMatch;
+        }
+
+        private Match3BoardSnapshot CreateSnapshot()
+        {
+            return new Match3BoardSnapshot(Width, Height, cells);
         }
 
         private void ValidatePosition(GridPosition position)

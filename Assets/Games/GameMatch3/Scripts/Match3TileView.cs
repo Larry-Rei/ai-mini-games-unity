@@ -20,8 +20,11 @@ namespace AiMiniGames.Match3
         [SerializeField] private Color orangeColor = new(0.95f, 0.56f, 0.23f);
 
         private GridPosition position;
+        private Match3TileType currentTileType;
 
         public GridPosition Position => position;
+
+        public Match3TileType CurrentTileType => currentTileType;
 
         // 初始化方块所属坐标，方便点击时把自己告诉棋盘视图。
         public void Setup(GridPosition gridPosition)
@@ -33,6 +36,8 @@ namespace AiMiniGames.Match3
         // 根据块类型刷新颜色和文本。
         public void SetTile(Match3TileType tileType)
         {
+            currentTileType = tileType;
+
             if (background != null)
             {
                 background.color = ResolveColor(tileType);
@@ -51,6 +56,38 @@ namespace AiMiniGames.Match3
             {
                 selectionOutline.enabled = isSelected;
             }
+        }
+
+        // 动画时用于控制整体透明度。
+        public void SetVisualAlpha(float alpha)
+        {
+            if (background != null)
+            {
+                var color = background.color;
+                color.a = alpha;
+                background.color = color;
+            }
+
+            if (valueText != null)
+            {
+                var color = valueText.color;
+                color.a = alpha;
+                valueText.color = color;
+            }
+        }
+
+        // 动画时用于控制缩放。
+        public void SetVisualScale(float scale)
+        {
+            transform.localScale = Vector3.one * scale;
+        }
+
+        // 每轮动画结束后恢复默认外观。
+        public void ResetVisualState()
+        {
+            SetTile(currentTileType);
+            SetVisualAlpha(1f);
+            SetVisualScale(1f);
         }
 
         private void OnValidate()
